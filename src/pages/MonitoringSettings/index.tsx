@@ -40,8 +40,9 @@ export default () => {
 
   // 动态组装配置数据 (假设域名使用当前网页域名，或者你也可以写死)
   const currentHost = API_BASE_URL;
+  const host = currentHost.replace(/^https?:\/\//, '');
   const configData = monitorData
-    ? `${currentHost}/${monitorData.monitor_app_salt}/${monitorData.appid}`
+    ? `${host}/${monitorData.monitor_app_salt}/${monitorData.appid}`
     : '';
 
   // 复制配置数据功能
