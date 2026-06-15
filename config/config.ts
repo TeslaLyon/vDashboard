@@ -116,7 +116,7 @@ export default defineConfig({
    */
   title: 'Ant Design Pro',
   layout: {
-    locale: true,
+    locale: false,
     ...defaultSettings,
   },
   /**
@@ -136,8 +136,9 @@ export default defineConfig({
     // default zh-CN
     default: 'zh-CN',
     antd: true,
+    title: false,
     // default true, when it is true, will use `navigator.language` overwrite default
-    baseNavigator: true,
+    baseNavigator: false,
   },
   /**
    * @name antd 插件
@@ -225,6 +226,7 @@ export default defineConfig({
   requestRecord: {},
   exportStatic: {},
   define: {
+    'process.env.API_URL': process.env.API_URL,
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,
     __APP_VERSION__: require('./../package.json').version,

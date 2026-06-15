@@ -3,7 +3,7 @@
 
 declare namespace API {
   type CurrentUser = {
-    name?: string;
+    username?: string;
     avatar?: string;
     userid?: string;
     email?: string;
@@ -23,10 +23,53 @@ declare namespace API {
     phone?: string;
   };
 
-  type LoginResult = {
+  type SysConfig = {
+    userid?: uint;
+    username?: string;
+    access?: string;
+    pay_page_salt?: string;
+    monitor_app_salt?: string;
+    appId?: string;
+    notifyUrl?: string;
+    returnUrl?: string;
+    close?: int;
+    payQf?: int8;
+    wxpay?: string;
+    zfbpay?: string;
+  }
+
+  type MonitorSettings = {
+    monitor_app_salt?: string;
+    appid?: string;
+    lastheart?: int;
+    lastpay?: int;
+    jkstate?: int;
+  }
+
+  // type LoginResult = {
+  //   status?: string;
+  //   type?: string;
+  //   currentAuthority?: string;
+  //   access_token?: string;   // 加上后端返回的字段
+  //   refresh_token?: string;  // 加上后端返回的字段
+  //   success?: boolean;       // 手动加上这个属性，解决报错
+  // };
+
+  // 1. 定义内部 data 的具体结构
+  type LoginData = {
     status?: string;
     type?: string;
     currentAuthority?: string;
+    access_token?: string;
+    refresh_token?: string;
+  };
+
+  // 2. 定义完整的请求返回结构
+  type LoginResult = {
+    success?: boolean;
+    code?: number;
+    msg?: string;
+    data?: LoginData; // 👈 将 Token 移动到 data 属性中
   };
 
   type PageParams = {
@@ -47,6 +90,23 @@ declare namespace API {
     updatedAt?: string;
     createdAt?: string;
     progress?: number;
+  };
+
+  type QRCodeListItem = {
+    id: number;
+    user_id: number;
+    pay_url: string; // 💡 重点：必须和后端的下划线保持一致
+    price: number;
+    type: number;
+    state: number;
+  };
+
+  // 列表接口的 data 层数据结构
+  type QRCodeListResult = {
+    limit: number;
+    page: number;
+    total: number;
+    list: QRCodeListItem[];
   };
 
   type RuleList = {
@@ -97,5 +157,14 @@ declare namespace API {
     datetime?: string;
     description?: string;
     type?: NoticeIconItemType;
+  };
+
+  // 如果你使用了统一响应格式，Umi 会自动处理外层的 success 和 data
+  // 但为了类型安全，确保你的请求返回类型是这样的：
+  type Response<T> = {
+    success: boolean;
+    code: number;
+    msg: string;
+    data: T;
   };
 }

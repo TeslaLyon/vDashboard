@@ -50,4 +50,10 @@ export default {
   'menu.editor.mind': '脑图编辑器',
   'menu.editor.koni': '拓扑编辑器',
   'menu.chatbot': 'AI 助手',
+  'menu.systemSettings': '系统设置',
+  'menu.monitoringSettings': '监控端设置',
+  'menu.orderList': '订单管理',
+  'menu.alipayQRConfig': '支付宝指定金额收款码',
+  'menu.alipayQRConfig.add': '添加',
+  'menu.alipayQRConfig.list': '管理',
 };

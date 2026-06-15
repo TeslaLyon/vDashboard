@@ -62,11 +62,6 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
 
   const menuItems: MenuProps['items'] = [
     {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '个人设置',
-    },
-    {
       key: 'theme',
       icon: <SkinOutlined />,
       label: '主题设置',

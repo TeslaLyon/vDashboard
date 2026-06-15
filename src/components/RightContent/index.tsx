@@ -64,25 +64,25 @@ const onVersionClick: MenuProps['onClick'] = ({ key }) => {
   window.open(key, '_blank', 'noopener,noreferrer');
 };
 
-export const VersionDropdown: React.FC = () => {
-  const { styles } = useStyles();
-  return (
-    <HeaderDropdown
-      placement="bottomRight"
-      arrow
-      menu={{
-        selectedKeys: [],
-        onClick: onVersionClick,
-        items: versionItems,
-        style: { minWidth: 100 },
-      }}
-    >
-      <Button type="text" className={styles.action} aria-label="历史版本">
-        <ForkOutlined />
-      </Button>
-    </HeaderDropdown>
-  );
-};
+// export const VersionDropdown: React.FC = () => {
+//   const { styles } = useStyles();
+//   return (
+//     <HeaderDropdown
+//       placement="bottomRight"
+//       arrow
+//       menu={{
+//         selectedKeys: [],
+//         onClick: onVersionClick,
+//         items: versionItems,
+//         style: { minWidth: 100 },
+//       }}
+//     >
+//       <Button type="text" className={styles.action} aria-label="历史版本">
+//         <ForkOutlined />
+//       </Button>
+//     </HeaderDropdown>
+//   );
+// };
 
 export const LangDropdown: React.FC = () => {
   const { styles } = useStyles();
