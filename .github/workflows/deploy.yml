@@ -1,31 +1,55 @@
-name: Deploy to GitHub Pages
+name: Deploy Ant Design Pro to Custom Server
 
 on:
   push:
     branches:
-      - all-blocks
-
-permissions:
-  contents: write
-  pages: write
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. 拉取你的项目代码
+      - name: Checkout Code 🛎️
         uses: actions/checkout@v6
 
-      - uses: utooland/setup-utoo@v1
-      - run: ut
-      - name: Set COMMIT_HASH
-        run: echo "COMMIT_HASH=${{ github.sha }}" >> $GITHUB_ENV
-      - run: ut build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # 2. 配置 Node.js 环境
+      - name: Setup Node.js ⚙️
+        uses: actions/setup-node@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          cname: preview.pro.ant.design
+          node-version: '20'
+
+      # 3. 安装 pnpm
+      - name: Install pnpm 📦
+        run: npm install -g pnpm
+
+      # 4. 安装项目依赖
+      - name: Install Dependencies 🔧
+        run: pnpm install
+
+      # 5. 动态创建 .env 文件 (新增步骤 📝)
+      # 这里的构建环境会读取你配置在 GitHub Secrets 中的密钥，并写入到生成的 .env 文件中
+      - name: Create .env file 📝
+        run: |
+          touch .env
+          echo "APP_ENV=production" >> .env
+          echo "API_URL=${{ secrets.PROD_API_URL }}" >> .env
+          # 💡 如果你还有其他环境变量，可以仿照下面这一行继续追加：
+          # echo "ANOTHER_VARIABLE=${{ secrets.ANOTHER_SECRET_NAME }}" >> .env
+
+      # 6. 打包构建项目 (此时打包程序会自动读取上一步创建的 .env 文件)
+      - name: Build Project 🏗️
+        run: pnpm run build
+
+      # 7. 通过 SSH 将打包生成的 dist 文件夹内容上传到你的服务器
+      - name: Deploy to Server 🚀
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22 # 你的服务器 SSH 端口，通常是 22
+          source: "dist/*"
+          target: "/home/cj/web_services/vmq-dashboard/" # ⚠️ 请务必将其修改为你服务器上实际存放前端文件的绝对路径
+          strip_components: 1
