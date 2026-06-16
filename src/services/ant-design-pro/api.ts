@@ -221,3 +221,41 @@ export async function removeRule(options?: { [key: string]: any }) {
     },
   });
 }
+
+/**
+ * 获取订单列表
+ * GET /api/orders
+ */
+export async function getOrders(
+  params: {
+    page?: number;
+    limit?: number;
+    state?: number | string;
+    type?: number | string;
+    order_id?: string;
+    user_id?: number | string;
+    start_at?: string;
+    end_at?: string;
+    [key: string]: any;
+  },
+  options?: { [key: string]: any }
+) {
+  // 👇 重点修改这里的泛型返回结构，严格对齐你的后端 JSON
+  return request<{
+    code: number;
+    msg: string;
+    data: any[];
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      total_pages: number;
+    };
+  }>('/api/orders', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}

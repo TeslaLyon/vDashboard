@@ -3,98 +3,125 @@ import {
   type ProColumns,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message, Popconfirm, Space, Tag } from 'antd';
+import { Button, message, Popconfirm, Tag } from 'antd';
 import React, { useRef } from 'react';
+import { getOrders } from '@/services/ant-design-pro/api';
 
-// 定义表格数据的类型
+// 1. 严格按照后端 JSON 更新数据类型
 type OrderItem = {
-  orderId: string;
-  merchantOrderId: string;
-  userId: string;
-  paymentMethod: string;
-  amount: number;
-  actualAmount: number;
-  status: string;
-  createdAt: string;
+  id: number;
+  user_id: number;
+  order_id: string;
+  pay_id: string; // 后端商户流水号字段
+  type: number;
+  price: number; // 后端订单金额字段
+  really_price: number; // 后端实付金额字段
+  state: number;
+  create_date: number; // 10位时间戳
+  pay_date: number;
+  close_date: number;
 };
 
 export default () => {
-  // 用于手动触发刷新等表格操作
   const actionRef = useRef<ActionType>(undefined);
 
-  // 定义表格列及顶部的搜索表单
+  // 2. 更新表格列映射
   const columns: ProColumns<OrderItem>[] = [
     {
       title: '订单号',
-      dataIndex: 'orderId',
+      dataIndex: 'order_id',
       width: 180,
-      search: false, // 不在顶部搜索表单中显示
-      render: (dom) => <div style={{ wordBreak: 'break-all' }}>{dom}</div>, // 允许长文本换行
+      fieldProps: { placeholder: '请输入订单号' },
+      render: (dom) => <div style={{ wordBreak: 'break-all' }}>{dom}</div>,
     },
     {
       title: '商户订单号',
-      dataIndex: 'merchantOrderId',
+      dataIndex: 'pay_id', // 👈 修改为 pay_id
       width: 180,
       search: false,
       render: (dom) => <div style={{ wordBreak: 'break-all' }}>{dom}</div>,
     },
     {
       title: '用户ID',
-      dataIndex: 'userId',
+      dataIndex: 'user_id',
       width: 80,
-      // 默认会生成 Input 搜索框，这里的配置是为了让 placeholder 符合截图
       fieldProps: { placeholder: '输入用户ID' },
     },
     {
       title: '支付方式',
-      dataIndex: 'paymentMethod',
-      search: false,
+      dataIndex: 'type',
       width: 80,
+      valueEnum: {
+        1: { text: '微信' },
+        2: { text: '支付宝' },
+      },
+      fieldProps: { placeholder: '选择支付方式' },
     },
     {
       title: '订单金额',
-      dataIndex: 'amount',
+      dataIndex: 'price', // 👈 修改为 price
       search: false,
       width: 80,
+      // 假设如果后端传 100 代表 1.00 元，你可以用 render 转换：
+      // render: (_, record) => `￥ ${(record.price / 100).toFixed(2)}`
     },
     {
       title: '实付金额',
-      dataIndex: 'actualAmount',
+      dataIndex: 'really_price', // 👈 修改为 really_price
       search: false,
       width: 80,
     },
     {
       title: '状态',
-      dataIndex: 'status',
+      dataIndex: 'state',
       width: 80,
-      // valueEnum 会自动把这个字段在搜索区变成下拉选择框，在表格区变成 Tag 标签
+      // 👈 同步了之前的 -1 状态
       valueEnum: {
-        closed: { text: '已关闭', status: 'Error' }, // Error 对应红色柔和背景标签
-        success: { text: '已支付', status: 'Success' },
-        pending: { text: '待支付', status: 'Processing' },
+        0: { text: '待支付', status: 'Processing' },
+        1: { text: '已支付', status: 'Success' },
+        '-1': { text: '已关闭', status: 'Error' },
       },
       fieldProps: { placeholder: '选择订单状态' },
     },
+    // --- 日期区间搜索 ---
     {
       title: '创建时间',
-      dataIndex: 'createdAt',
+      dataIndex: 'createdAtRange',
+      valueType: 'dateRange',
+      hideInTable: true,
+      fieldProps: { placeholder: ['开始时间', '结束时间'] },
+      search: {
+        transform: (value) => {
+          return {
+            start_at: value[0],
+            end_at: value[1],
+          };
+        },
+      },
+    },
+    // --- 日期表格展示 ---
+    {
+      title: '创建时间',
+      dataIndex: 'create_date', // 👈 修改为 create_date
       search: false,
-      width: 120,
+      width: 160,
+      valueType: 'dateTime', // Ant Design Pro 内置特性，自动将时间戳/日期对象格式化显示
+      // 👈 因为后端是10位秒级时间戳，我们需要将其转为毫秒，组件才能正确渲染
+      renderText: (text) => (text ? text * 1000 : '-'),
     },
     {
       title: '操作',
-      valueType: 'option', // 定义为操作列
+      valueType: 'option',
       width: 80,
       render: (text, record, _, action) => [
         <Popconfirm
           key="delete"
           title="确定要删除这条订单吗？"
           onConfirm={() => {
-            message.success(`删除了订单 ${record.orderId}`);
-            action?.reload(); // 重新加载表格数据
+            message.success(`删除了订单 ${record.order_id}`);
+            action?.reload();
           }}
         >
-          {/* 截图中的红色删除按钮 */}
           <Button type="primary" danger size="small">
             删除
           </Button>
@@ -107,97 +134,48 @@ export default () => {
     <ProTable<OrderItem>
       headerTitle="订单列表"
       actionRef={actionRef}
-      rowKey="orderId"
-      // 调整搜索表单的样式布局
+      rowKey="id" // 👈 推荐使用后端返回的唯一自增主键 id 作为 rowKey
       search={{
         labelWidth: 'auto',
-        // 隐藏重置按钮和展开按钮，只保留查询按钮
-        optionRender: (searchConfig, formProps, dom) => [
-          <Button
-            type="primary"
-            key="search"
-            onClick={() => formProps?.form?.submit()}
-          >
-            查询
-          </Button>,
-        ],
       }}
-      // 配置右上角的自定义操作按钮
-      toolBarRender={() => [
-        <Button
-          key="closeTimeout"
-          style={{
-            backgroundColor: '#fadb14',
-            borderColor: '#fadb14',
-            color: '#fff',
-          }} // 橙黄色按钮
-          onClick={() => message.info('执行关闭超时订单')}
-        >
-          关闭超时订单
-        </Button>,
-        <Button
-          key="delExpired"
-          type="primary"
-          danger
-          onClick={() => message.warning('执行删除过期订单')}
-        >
-          删除过期订单
-        </Button>,
-        <Button
-          key="delHistory"
-          type="primary"
-          danger
-          onClick={() => message.error('执行删除历史订单')}
-        >
-          删除历史订单
-        </Button>,
-      ]}
       columns={columns}
-      // 模拟请求接口获取数据 (代替真实的 request={(params) => fetch(...)})
       request={async (params) => {
-        console.log('搜索参数:', params);
-        // 模拟延迟
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        return {
-          data: [
-            {
-              orderId: 'VMQ20260518174024000106add3',
-              merchantOrderId: 'PAY202605181740240001b8689944',
-              userId: '1',
-              paymentMethod: '支付宝',
-              amount: 0.01,
-              actualAmount: 0.01,
-              status: 'closed',
-              createdAt: '2026/05/18 17:40:24',
-            },
-            {
-              orderId: 'VMQ202605181712150001128eea',
-              merchantOrderId: 'PAY2026051817121500018775c1c6',
-              userId: '1',
-              paymentMethod: '支付宝',
-              amount: 0.01,
-              actualAmount: 0.01,
-              status: 'closed',
-              createdAt: '2026/05/18 17:12:15',
-            },
-            {
-              orderId: 'VMQ2026051815383100011d9f44',
-              merchantOrderId: 'PAY2026051815383100012a5ad0d0',
-              userId: '1',
-              paymentMethod: '支付宝',
-              amount: 0.01,
-              actualAmount: 0.01,
-              status: 'closed',
-              createdAt: '2026/05/18 15:38:31',
-            },
-          ],
-          success: true,
-          total: 3,
+        // 组装查询参数，剔除空值
+        const cleanPayload: Record<string, any> = {
+          page: params.current || 1,
+          limit: params.pageSize || 10,
         };
+
+        if (params.state !== undefined && params.state !== '')
+          cleanPayload.state = Number(params.state);
+        if (params.type !== undefined && params.type !== '')
+          cleanPayload.type = Number(params.type);
+        if (params.order_id) cleanPayload.order_id = params.order_id;
+        if (params.user_id) cleanPayload.user_id = Number(params.user_id);
+        if (params.start_at) cleanPayload.start_at = params.start_at;
+        if (params.end_at) cleanPayload.end_at = params.end_at;
+
+        try {
+          const result = await getOrders(cleanPayload);
+
+          // 👈 重点：从正确的层级取数据和分页总数
+          return {
+            data: result.data || [],
+            success: result.code === 200,
+            total: result.meta?.total || 0, // 👈 从 meta 结构中读取 total
+          };
+        } catch (error) {
+          console.error('获取订单列表失败', error);
+          return {
+            data: [],
+            success: false,
+            total: 0,
+          };
+        }
       }}
       pagination={{
-        pageSize: 10,
-        showSizeChanger: false, // 截图中没有页码切换器
+        defaultPageSize: 10,
+        showSizeChanger: true,
       }}
     />
   );
