@@ -22,11 +22,11 @@ jobs:
 
       # 3. 安装 pnpm
       - name: Install pnpm 📦
-        run: npm install -g pnpm
+        run: npm install -g pnpm@9
 
       # 4. 安装项目依赖
       - name: Install Dependencies 🔧
-        run: pnpm install --no-strict-dep-builds
+        run: pnpm install
 
       # 5. 动态创建 .env 文件 (新增步骤 📝)
       # 这里的构建环境会读取你配置在 GitHub Secrets 中的密钥，并写入到生成的 .env 文件中
