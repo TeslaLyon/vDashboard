@@ -111,6 +111,7 @@ export default () => {
       valueEnum: {
         0: { text: '待支付', status: 'Processing' },
         1: { text: '已支付', status: 'Success' },
+        2: { text: '已支付(通知失败)', status: 'Warning' },
         '-1': { text: '已关闭', status: 'Error' },
       },
       fieldProps: { placeholder: '选择订单状态' },
