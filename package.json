@@ -4,17 +4,7 @@
   "private": true,
   "description": "An out-of-box UI solution for enterprise applications",
   "repository": "git@github.com:ant-design/ant-design-pro.git",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "@scarf/scarf",
-      "core-js",
-      "core-js-pure",
-      "es5-ext",
-      "esbuild",
-      "unrs-resolver"
-    ]
-  },
+
   "scripts": {
     "analyze": "cross-env ANALYZE=1 max build",
     "build": "max build",

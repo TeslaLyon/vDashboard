@@ -1,0 +1,11 @@
+packages:
+  - '.'
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - core-js
+  - core-js-pure
+  - es5-ext
+  - esbuild
+  - unrs-resolver
+
